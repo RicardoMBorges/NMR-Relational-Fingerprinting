@@ -1370,8 +1370,18 @@ except FileNotFoundError:
 
 st.markdown("by Ricardo M Borges (IPPN-UFRJ)")
  
-with st.sidebar:
 
+ 
+with st.sidebar:
+    st.divider()
+
+    st.link_button(
+        "📖 Documentation / Tutorial",
+        "https://github.com/RicardoMBorges/NMR-Relational-Fingerprinting/blob/main/README.md",
+        use_container_width=True,
+    )
+    
+    st.divider()
     st.header("Fingerprint parameters")
 
     # ============================================================
