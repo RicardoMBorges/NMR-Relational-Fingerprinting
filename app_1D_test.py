@@ -92,6 +92,7 @@ class ProtonHashParameters:
     use_absolute_pair_direction: bool = True
     min_intensity_quantile: float = 0.0
     match_shift_tolerance: float = 0.05
+    min_relative_intensity: float = 0.02
 
 
 # ============================================================
@@ -476,6 +477,22 @@ def generate_hashes_for_proton_spectrum(
     """
     peaks = peak_table.copy().sort_values("delta_H").reset_index(drop=True)
 
+    # 1) Remove peaks below a relative intensity threshold.
+    # Example: min_relative_intensity = 0.02 keeps only peaks >= 2% of the maximum intensity.
+    if (
+        hasattr(params, "min_relative_intensity")
+        and params.min_relative_intensity > 0
+        and "intensity" in peaks.columns
+        and not peaks.empty
+    ):
+        max_intensity = peaks["intensity"].max()
+
+        if pd.notna(max_intensity) and max_intensity > 0:
+            intensity_cutoff = max_intensity * params.min_relative_intensity
+            peaks = peaks[peaks["intensity"] >= intensity_cutoff].copy()
+            peaks = peaks.sort_values("delta_H").reset_index(drop=True)
+
+    # 2) Then remove the weakest peaks by quantile.
     if params.min_intensity_quantile > 0:
         peaks = filter_peaks_by_intensity_quantile(peaks, params.min_intensity_quantile)
         peaks = peaks.sort_values("delta_H").reset_index(drop=True)
@@ -1503,6 +1520,16 @@ Best for curated reference databases.
         help="Example: 0.20 removes the weakest 20% of peaks within each compound.",
     )
     
+    min_relative_intensity = st.slider(
+        "Minimum relative intensity",
+        min_value=0.0,
+        max_value=0.20,
+        value=0.02,
+        step=0.005,
+        format="%.3f",
+        help="Removes peaks below this fraction of the most intense peak. Example: 0.02 keeps peaks >= 2% of max intensity.",
+    )
+    
     match_shift_tolerance = st.number_input(
         "Absolute δH match tolerance / ppm",
         min_value=0.001,
@@ -1566,6 +1593,7 @@ Best for curated reference databases.
         use_absolute_pair_direction=use_absolute_pair_direction,
         min_intensity_quantile=min_intensity_quantile,
         match_shift_tolerance=match_shift_tolerance,
+        min_relative_intensity=min_relative_intensity,
     )
 
 
@@ -1689,10 +1717,11 @@ with tab_hashes:
     st.subheader("2. Generate relational fingerprints")
 
     uploaded_hash_file = st.file_uploader(
-        "Or upload an existing reference hash database CSV",
+        "Optionally upload an existing reference hash database CSV",
         type=["csv"],
         accept_multiple_files=False,
         key="upload_existing_hash_database",
+        help="Ex: proton_nmr_relational_hash_database_27052026_HMDB",
     )
 
     if uploaded_hash_file is not None:
@@ -1836,6 +1865,7 @@ with tab_search:
             type=["csv", "tsv", "txt"],
             accept_multiple_files=False,
             key="unknown_upload",
+            help="Ex: 0001_SAND_peakList.csv",
         )
 
         if unknown_file is not None:
