@@ -1341,8 +1341,18 @@ def plot_experimental_spectrum_with_reference_peaks(
 st.title("1H NMR Relational Fingerprinting")
 st.caption("A Shazam-inspired fingerprinting prototype for ¹H NMR peak lists and mixtures")
 
-with st.sidebar:
-    st.header("Fingerprint parameters")
+# LOGOS ======================================================
+from PIL import Image
+STATIC_DIR = Path(__file__).parent / "static"
+LOGO_PATH = STATIC_DIR / "LAABio.png"
+try:
+    logo = Image.open(LOGO_PATH)  # raises if missing
+    st.sidebar.image(logo, use_container_width=True)
+except FileNotFoundError:
+    st.sidebar.warning("Logo not found at static/LAABio.png")
+
+st.markdown("by Ricardo M Borges (IPPN-UFRJ)")
+ 
 with st.sidebar:
 
     st.header("Fingerprint parameters")
