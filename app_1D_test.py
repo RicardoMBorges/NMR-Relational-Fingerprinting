@@ -1617,14 +1617,15 @@ with tab_library:
         type=["csv", "tsv", "txt", "zip", "str", "star"],
         accept_multiple_files=True,
         key="library_upload",
+        help="Ex: hmdb_1h_peak_database_standardized",
     )
 
     uploaded_structure_file = st.file_uploader(
-        "Optional: upload HMDB structure mapping CSV",
+        "Optional: upload structure mapping CSV",
         type=["csv", "tsv", "txt"],
         accept_multiple_files=False,
         key="structure_mapping_upload",
-        help="Expected columns: HMDB_ID, SMILES, INCHI_KEY, GENERIC_NAME. HMDB_ID will be matched to compound_id.",
+        help="Expected columns: HMDB_ID, SMILES, INCHI_KEY, GENERIC_NAME. HMDB_ID will be matched to compound_id. Ex: hmdb_structures_mapping ",
     )
 
     structure_mapping = None
