@@ -1916,6 +1916,24 @@ with tab_search:
                 )
 
                 unknown_peaks_for_search = unknown_peaks.copy()
+                # Remove weak experimental peaks
+                if (
+                    hasattr(params, "min_relative_intensity")
+                    and params.min_relative_intensity > 0
+                    and "intensity" in unknown_peaks_for_search.columns
+                ):
+
+                    max_intensity = unknown_peaks_for_search["intensity"].max()
+
+                    if pd.notna(max_intensity) and max_intensity > 0:
+
+                        intensity_cutoff = (
+                            max_intensity * params.min_relative_intensity
+                        )
+
+                        unknown_peaks_for_search = unknown_peaks_for_search[
+                            unknown_peaks_for_search["intensity"] >= intensity_cutoff
+                        ].copy()
 
                 if exclude_low_ppm:
                     unknown_peaks_for_search = unknown_peaks_for_search[
